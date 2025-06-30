@@ -323,7 +323,8 @@ function App() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-black/80 text-sm">
-          Created with React • Weather data from OpenWeatherMap
+          <p>Created with React • Weather data from OpenWeatherMap</p>
+          <p>Created by Neil Mannion</p>
         </div>
       </div>
     </div>
