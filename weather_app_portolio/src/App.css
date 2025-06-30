@@ -1,0 +1,136 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to right, #83a4d4, #b6fbff);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 40px;
+}
+
+.App {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 0 1rem; /* Add some padding for mobile */
+}
+
+header h2 {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.container {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+input.form-control {
+  width: 280px;
+  max-width: 100%; /* Responsive */
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+button.btn-primary {
+  background-color: #007bff;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+button.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.card {
+  width: 100%;
+  margin-top: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 15px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box; /* This is key - includes padding in width calculation */
+}
+
+.weather-icon {
+  width: 80px;
+  height: 80px;
+}
+
+.h2 {
+  font-size: 2rem;
+  color: #444;
+  margin-top: 1rem;
+}
+
+.h5 {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.row {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem; /* Add gap between columns */
+}
+
+.col-md-6 {
+  flex: 1;
+  min-width: 200px; /* Minimum width before wrapping */
+}
+
+.col-md-6 p {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+footer.footer {
+  margin-top: 3rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+/* Media query for better mobile experience */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem;
+  }
+  
+  .card {
+    padding: 1rem;
+  }
+  
+  .row {
+    flex-direction: column;
+  }
+  
+  input.form-control {
+    width: 100%;
+  }
+}
