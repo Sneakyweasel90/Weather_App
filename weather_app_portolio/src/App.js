@@ -7,6 +7,32 @@ import enLocale from 'i18n-iso-countries/langs/en.json';
 
 countries.registerLocale(enLocale);
 
+function getBackgroundClass(weatherMain) {
+  if (!weatherMain) return 'bg-default';
+
+  const lower = weatherMain.toLowerCase();
+  const known = ['clear', 'clouds', 'rain', 'drizzle', 'thunderstorm', 'snow'];
+
+  if (!known.includes(lower)) {
+    console.warn(`Unknown weather condition: ${weatherMain}`);
+  }
+
+  switch (lower) {
+    case 'clear':
+      return 'bg-sunny';
+    case 'clouds':
+      return 'bg-cloudy';
+    case 'rain':
+    case 'drizzle':
+    case 'thunderstorm':
+      return 'bg-rainy';
+    case 'snow':
+      return 'bg-snowy';
+    default:
+      return 'bg-default';
+  }
+}
+
 function App() {
   const [apiData, setApiData] = useState({});
   const [getState, setGetState] = useState('Toronto');
@@ -95,12 +121,18 @@ function App() {
   const currentWeather = apiData.list && apiData.list[0];
   const dailySummary = apiData.list ? getDailySummary(apiData.list) : [];
 
+  const currentWeatherMain = currentWeather?.weather[0]?.main || '';
+  const forecastWeatherMain = dailySummary[0]?.weather?.[0]?.main || '';
+  const backgroundClass = getBackgroundClass(
+    viewMode === 'current' ? currentWeatherMain : forecastWeatherMain
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 p-4">
+    <div className={`min-h-screen p-4 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 relative overflow-hidden ${backgroundClass}`}>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4">Weather Forecast</h1>
+          <h1 className="text-4xl font-bold text-black mb-4">Weather Forecast</h1>
           
           {/* Search Bar */}
           <div className="flex justify-center items-center gap-4 mb-6">
@@ -126,7 +158,7 @@ function App() {
               className={`px-4 py-2 rounded-lg transition-colors ${
                 viewMode === 'current' 
                   ? 'bg-white text-blue-600' 
-                  : 'bg-blue-500 text-white hover:bg-blue-400'
+                  : 'bg-blue-500 text-black hover:bg-blue-400'
               }`}
             >
               Current Weather
@@ -136,7 +168,7 @@ function App() {
               className={`px-4 py-2 rounded-lg transition-colors ${
                 viewMode === 'forecast' 
                   ? 'bg-white text-blue-600' 
-                  : 'bg-blue-500 text-white hover:bg-blue-400'
+                  : 'bg-blue-500 text-black hover:bg-blue-400'
               }`}
             >
               5-Day Forecast
@@ -148,7 +180,7 @@ function App() {
           <div>
             {/* Current Weather View */}
             {viewMode === 'current' && currentWeather && (
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 text-white shadow-xl">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 text-black shadow-xl">
                 <div className="text-center">
                   <div className="flex items-center justify-center mb-4">
                     <img
@@ -203,13 +235,13 @@ function App() {
             {/* 5-Day Forecast View */}
             {viewMode === 'forecast' && (
               <div>
-                <h3 className="text-2xl font-bold text-white text-center mb-6">
+                <h3 className="text-2xl font-bold text-black text-center mb-6">
                   5-Day Forecast for {apiData.city.name}
                 </h3>
                 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                   {dailySummary.map((day, index) => (
-                    <div key={index} className="bg-white/10 backdrop-blur-md rounded-xl p-4 text-white text-center">
+                    <div key={index} className="bg-white/10 backdrop-blur-md rounded-xl p-4 text-black text-center">
                       <p className="font-semibold mb-2">
                         {new Date(day.date).toLocaleDateString('en-US', { 
                           weekday: 'short', 
@@ -282,7 +314,7 @@ function App() {
             )}
           </div>
         ) : (
-          <div className="text-center text-white">
+          <div className="text-center text-black">
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8">
               <h2 className="text-2xl font-bold">Loading weather data...</h2>
             </div>
@@ -290,7 +322,7 @@ function App() {
         )}
 
         {/* Footer */}
-        <div className="text-center mt-8 text-white/80 text-sm">
+        <div className="text-center mt-8 text-black/80 text-sm">
           Created with React • Weather data from OpenWeatherMap
         </div>
       </div>
