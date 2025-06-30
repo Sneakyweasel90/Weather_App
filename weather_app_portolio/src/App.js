@@ -42,7 +42,7 @@ function App() {
   const apiKey = process.env.REACT_APP_API_KEY;
   const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${state}&appid=${apiKey}`;
 
-  const useMockData = true;
+  const useMockData = false;
 
   useEffect(() => {
     if (useMockData) {
