@@ -38,21 +38,89 @@ function App() {
   const [getState, setGetState] = useState('Toronto');
   const [state, setState] = useState('Toronto');
   const [viewMode, setViewMode] = useState('current'); // 'current' or 'forecast'
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(true);
+  const [locationError, setLocationError] = useState(null);
 
   const apiKey = process.env.REACT_APP_API_KEY;
-  const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${state}&appid=${apiKey}`;
-
   const useMockData = false;
 
-  useEffect(() => {
-    if (useMockData) {
-      setApiData(fiveDays);
-    } else {
-      fetch(apiUrl)
-        .then((res) => res.json())
-        .then((data) => setApiData(data));
+
+
+  const getUserLocation = () => {
+    setLocationLoading(true);
+    setLocationError(null);
+    
+    // if geolocation is supported by the users browser
+    if (navigator.geolocation) {
+      // get the current users location
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          // save the geolocation coordinates in two variables
+          const { latitude, longitude } = position.coords;
+          // update the value of userlocation variable
+          setUserLocation({ latitude, longitude });
+          setLocationLoading(false);
+          console.log('User location obtained:', { latitude, longitude });
+        },
+        // if there was an error getting the users location
+        (error) => {
+          console.error('Error getting user location:', error);
+          setLocationError('Unable to get your location. Using default location.');
+          setLocationLoading(false);
+        },
+        // Options for geolocation
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 600000 // 10 minutes
+        }
+      );
     }
-  }, [apiUrl, useMockData]);
+    // if geolocation is not supported by the users browser
+    else {
+      console.error('Geolocation is not supported by this browser.');
+      setLocationError('Geolocation is not supported by this browser.');
+      setLocationLoading(false);
+    }
+  };
+
+  // Get user location on component mount
+  useEffect(() => {
+    getUserLocation();
+  }, []);
+
+  // Fetch weather data when location changes or state changes
+  useEffect(() => {
+    const fetchWeatherData = () => {
+      if (useMockData) {
+        setApiData(fiveDays);
+      } else {
+        // Build API URL directly in the effect
+        const apiUrl = userLocation && !useMockData
+          ? `https://api.openweathermap.org/data/2.5/forecast?lat=${userLocation.latitude}&lon=${userLocation.longitude}&appid=${apiKey}`
+          : `https://api.openweathermap.org/data/2.5/forecast?q=${state}&appid=${apiKey}`;
+        
+        fetch(apiUrl)
+          .then((res) => res.json())
+          .then((data) => {
+            setApiData(data);
+            // If we got data from coordinates, update the display location
+            if (userLocation && data.city) {
+              setGetState(data.city.name);
+            }
+          })
+          .catch((error) => {
+            console.error('Error fetching weather data:', error);
+          });
+      }
+    };
+
+    // Only fetch data if we're not still loading location
+    if (!locationLoading) {
+      fetchWeatherData();
+    }
+  }, [userLocation, state, locationLoading, useMockData, apiKey]);
 
   const inputHandler = (event) => {
     setGetState(event.target.value);
@@ -60,25 +128,15 @@ function App() {
 
   const submitHandler = () => {
     setState(getState);
+    // Clear user location when manually searching to use city name instead
+    setUserLocation(null);
+  };
+
+  const useCurrentLocationHandler = () => {
+    getUserLocation();
   };
 
   const kelvinToCelsius = (k) => (k - 273.15).toFixed(1);
-
-  // const formatTime = (timestamp) => {
-  //   const date = new Date(timestamp * 1000);
-  //   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  // };
-
-  // const formatDate = (timestamp) => {
-  //   const date = new Date(timestamp * 1000);
-  //   return date.toLocaleDateString('en-US', { 
-  //     weekday: 'short', 
-  //     month: 'short', 
-  //     day: 'numeric',
-  //     hour: '2-digit',
-  //     minute: '2-digit'
-  //   });
-  // };
 
   // Group forecast data by day
   const groupForecastByDay = (forecastList) => {
@@ -134,6 +192,19 @@ function App() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-black mb-4">Weather Forecast</h1>
           
+          {/* Location Status */}
+          {locationLoading && (
+            <div className="mb-4 text-black">
+              <p>🌍 Getting your location...</p>
+            </div>
+          )}
+          
+          {locationError && (
+            <div className="mb-4 text-red-600 bg-red-100 p-2 rounded-lg">
+              <p>{locationError}</p>
+            </div>
+          )}
+          
           {/* Search Bar */}
           <div className="flex justify-center items-center gap-4 mb-6">
             <input
@@ -148,6 +219,13 @@ function App() {
               className="px-6 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-semibold"
             >
               Search
+            </button>
+            <button 
+              onClick={useCurrentLocationHandler}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold"
+              disabled={locationLoading}
+            >
+              📍 Use My Location
             </button>
           </div>
 
@@ -196,6 +274,7 @@ function App() {
                   
                   <p className="text-xl mb-2">
                     {apiData.city.name}, {apiData.city.country}
+                    {userLocation && <span className="text-sm ml-2">📍 Current Location</span>}
                   </p>
                   
                   <p className="text-lg mb-6 capitalize">
@@ -237,6 +316,7 @@ function App() {
               <div>
                 <h3 className="text-2xl font-bold text-black text-center mb-6">
                   5-Day Forecast for {apiData.city.name}
+                  {userLocation && <span className="text-sm ml-2">📍</span>}
                 </h3>
                 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -275,48 +355,15 @@ function App() {
                     </div>
                   ))}
                 </div>
-
-                {/* Detailed Hourly Forecast */}
-                {/* <div className="mt-8">
-                  <h4 className="text-xl font-bold text-white text-center mb-4">
-                    Detailed Hourly Forecast
-                  </h4>
-                  
-                  <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 max-h-96 overflow-y-auto">
-                    <div className="space-y-3">
-                      {apiData.list.slice(0, 10).map((item, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-white/10 rounded-lg text-white">
-                          <div className="flex items-center gap-4">
-                            <p className="text-sm font-medium min-w-[120px]">
-                              {formatDate(item.dt)}
-                            </p>
-                            <img
-                              src={`http://openweathermap.org/img/w/${item.weather[0].icon}.png`}
-                              alt="weather icon"
-                              className="w-8 h-8"
-                            />
-                            <p className="text-sm capitalize min-w-[100px]">
-                              {item.weather[0].description}
-                            </p>
-                          </div>
-                          
-                          <div className="flex items-center gap-6 text-sm">
-                            <span className="font-bold">{kelvinToCelsius(item.main.temp)}°C</span>
-                            <span>💧 {item.main.humidity}%</span>
-                            <span>💨 {item.wind.speed} m/s</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div> */}
               </div>
             )}
           </div>
         ) : (
           <div className="text-center text-black">
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8">
-              <h2 className="text-2xl font-bold">Loading weather data...</h2>
+              <h2 className="text-2xl font-bold">
+                {locationLoading ? 'Getting your location...' : 'Loading weather data...'}
+              </h2>
             </div>
           </div>
         )}
