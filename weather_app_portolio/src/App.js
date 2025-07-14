@@ -372,6 +372,7 @@ function App() {
         <div className="text-center mt-8 text-black/80 text-sm">
           <p>Created with React • Weather data from OpenWeatherMap</p>
           <p>Created by Neil Mannion</p>
+          <a href='https://github.com/Sneakyweasel90/Weather_App'>---GitHub Repository---</a>
         </div>
       </div>
     </div>
